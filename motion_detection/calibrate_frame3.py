@@ -152,7 +152,9 @@ def checkAction(background_f, frame, y0, x0, height, width, version=0):
 def main(endpoint, name, duration):
     source = 0
 
-    faceCascade = cv2.CascadeClassifier('./models/haarcascade_frontalface_default.xml')
+    haar = False
+    if haar == True:
+        faceCascade = cv2.CascadeClassifier('./models/haarcascade_frontalface_default.xml')
 
     #DNN METHOD load our serialized model from disk
     print("[INFO] loading model...")
@@ -162,18 +164,20 @@ def main(endpoint, name, duration):
     # initialize the video stream and allow the cammera sensor to warmup
     cap = VideoStream(usePiCamera=-1 > 0).start()
     time.sleep(2.0)
-    hasFrame = True
+
     frame = cap.read()
     frame = imutils.resize(frame, width=400)
     current_time = datetime.datetime.now()
-    finish = current_time + datetime.timedelta(seconds=3)
-
-    frame_count = 0
-    tt_opencvHaar = 0
-    vid_writer = cv2.VideoWriter('output-haar-{}.avi'.format(str(source).split(".")[0]),cv2.VideoWriter_fourcc('M','J','P','G'), 15, (frame.shape[1],frame.shape[0]))
+    finish = current_time + datetime.timedelta(seconds=1)
+    
+    if haar==True:
+        hasFrame = True
+        frame_count = 0
+        tt_opencvHaar = 0
+        vid_writer = cv2.VideoWriter('output-haar-{}.avi'.format(str(source).split(".")[0]),cv2.VideoWriter_fourcc('M','J','P','G'), 15, (frame.shape[1],frame.shape[0]))
+        
     avg2 = np.float32(frame)
     background_frame = None
-    haar = False
 
     #Start up calibration
     while current_time < finish:
@@ -284,7 +288,10 @@ def main(endpoint, name, duration):
                 count_pulse = False
                 n_actions += 1
                 print("Jumping jack "+str(n_actions))
-                requests.post("http://{0}/{1}/jump".format(endpoint, name))
+                if endpoint ==  "local":
+                    pass
+                else:
+                    requests.post("http://{0}/{1}/jump".format(endpoint, name))
 
 
         if haar == True:
@@ -303,9 +310,11 @@ def main(endpoint, name, duration):
         if k == 27:
             break
     cv2.destroyAllWindows()
-    vid_writer.release()
+    
+    if haar == True:
+        vid_writer.release()
 
 
 #temp hardcode
 if __name__ == '__main__':
-    main("endpoint", "name", 20)
+    main("local", "name", 20)
