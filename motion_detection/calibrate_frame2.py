@@ -3,7 +3,7 @@ import cv2
 import time
 import sys
 import datetime
-import requests
+import subprocess
 
 import numpy as np
 import imutils
@@ -285,7 +285,7 @@ def main(endpoint, name, duration):
                 count_pulse = False
                 n_actions += 1
                 print("Jumping jack "+str(n_actions))
-                requests.post("http://{0}/{1}/jump".format(endpoint, name))
+                subprocess.Popen(['curl', '-X', 'POST', "http://{0}/{1}/jump".format(endpoint, name)])
 
 
         if haar == True:

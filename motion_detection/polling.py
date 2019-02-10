@@ -1,11 +1,12 @@
 import datetime
 import requests
-import calibrate_frame2
+import calibrate_frame3
+import subprocess
 import sys
 import time
 import webbrowser
 
-endpoint = "7fbfdf67.ngrok.io"
+endpoint = "35.233.243.58:5000"
 
 def main(args):
     name = args[0]
@@ -19,8 +20,8 @@ def main(args):
         time.sleep(5)
     print("ALARM GOING OFF!!")
 
-    calibrate_frame2.main(endpoint, name, 10)
-    requests.post("http://{0}/{1}/jump/end".format(endpoint, name))
+    calibrate_frame3.main(endpoint, name, 10)
+    subprocess.Popen(['curl', '-X', 'POST', "http://{0}/{1}/jump/end".format(endpoint, name)])
 
 
 if __name__ == '__main__':
