@@ -285,7 +285,7 @@ def main(endpoint, name, duration):
                 count_pulse = False
                 n_actions += 1
                 print("Jumping jack "+str(n_actions))
-                requests.post(f"http://{endpoint}/{name}/jump")
+                requests.post("http://{0}/{1}/jump".format(endpoint, name))
 
 
         if haar == True:
