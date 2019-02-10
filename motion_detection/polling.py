@@ -5,7 +5,7 @@ import sys
 import time
 import webbrowser
 
-endpoint = "1efd0d38.ngrok.io"
+endpoint = "7fbfdf67.ngrok.io"
 
 def main(args):
     name = args[0]
