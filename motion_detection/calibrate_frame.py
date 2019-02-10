@@ -3,6 +3,7 @@ import cv2
 import time
 import sys
 import datetime
+import requests
 
 import numpy as np
 import imutils
@@ -187,7 +188,7 @@ if __name__ == "__main__" :
                     if jump_stop_time > jump_start_time and count_pulse == False:
                         print("Pulse Time: "+str(round(jump_stop_time-jump_start_time, 2)))
                         pulse_duration = round(jump_stop_time-jump_start_time, 2)
-                        
+
                         if pulse_duration < jump_debounce_time:
                             count_pulse = True
                 found = False
@@ -196,6 +197,7 @@ if __name__ == "__main__" :
                 count_pulse = False
                 n_actions += 1
                 print("Jumping jack "+str(n_actions))
+                requests.post("http://1efd0d38.ngrok.io/gordon/jump")
 
 
 
