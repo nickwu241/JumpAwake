@@ -1,7 +1,7 @@
 import firebase_admin
 from firebase_admin import credentials, db
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 cred = credentials.Certificate('firebase-sa-secret.json')
 default_app = firebase_admin.initialize_app(cred, options={
@@ -13,6 +13,7 @@ DB = db.reference('/users')
 JUMPS_KEY = 'jumps'
 LIFETIME_JUMP_KEY = 'lifetime_jumps'
 ALARM_KEY = 'alarm'
+
 
 class User():
     def __init__(self, user_id):
@@ -38,11 +39,11 @@ class User():
 
     @property
     def seconds_until_alarm(self):
-        alarm = datetime.strptime(self.data['alarm'], '%Y-%m-%dT%H:%M:%SZ')
+        alarm = self.__get_datetime(self.data['alarm'])
         now = datetime.utcnow()
         dt = alarm - now
         # Give 30 second delay for camera to warm up
-        return dt.total_seconds() + 30
+        return (dt - timedelta(seconds=30)).total_seconds()
 
     @property
     def data(self):
@@ -63,3 +64,10 @@ class User():
     @property
     def __jumps_node(self):
         return DB.child('{}/{}'.format(self.id, JUMPS_KEY))
+
+
+    def __get_datetime(self, iso_string):
+        try:
+            return datetime.strptime(self.data['alarm'], '%Y-%m-%dT%H:%M:%SZ')
+        except ValueError:
+            return datetime.strptime(self.data['alarm'], '%Y-%m-%dT%H:%M:%S.000Z')

@@ -69,10 +69,10 @@ def user_jump(user_id):
     elif request.method == 'POST':
         for c in clients.values():
             if c['user'] == user_id:
-                c['data']['jumps'] += 1
+                c['data']['jumps'] += models.User(user_id).increment_jump()
                 break
 
-        models.User(user_id).increment_jump()
+        # models.User(user_id).increment_jump()
         __emit_jumps()
         return jsonify({'status': 'OK'})
     abort(400)
