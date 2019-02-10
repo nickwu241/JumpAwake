@@ -167,7 +167,7 @@ def main(endpoint, name, duration):
     #cap = cv2.VideoCapture(source)
     # initialize the video stream and allow the cammera sensor to warmup
     cap = VideoStream(usePiCamera=-1 > 0).start()
-    time.sleep(.5)
+    time.sleep(1)
 
     frame = cap.read()
     frame = imutils.resize(frame, width=400)
