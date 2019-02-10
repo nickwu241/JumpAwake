@@ -65,7 +65,7 @@ def detectFaces(faceCascade, frame, inHeight=300, inWidth=0):
 
     return [( int(x * ratio_y), int(y * ratio_x), int(w * ratio_x) , int(h * ratio_y) ) for (x, y, w, h) in boundingBoxes]
 
-def detectFaces2(frame, confidence_threshold=0.5):
+def detectFaces2(frame, net, confidence_threshold=0.5):
     # grab the frame dimensions and convert it to a blob
     (h, w) = frame.shape[:2]
     blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0,
@@ -150,10 +150,8 @@ def checkAction(background_f, frame, y0, x0, height, width, version=0):
 
     return confidence, bbox_triggered
 
-if __name__ == "__main__" :
+def main(endpoint, name):
     source = 0
-    if len(sys.argv) > 1:
-        source = sys.argv[1]
 
     faceCascade = cv2.CascadeClassifier('./models/haarcascade_frontalface_default.xml')
 
@@ -197,7 +195,7 @@ if __name__ == "__main__" :
             bboxes = detectFaces(faceCascade, frame)
             frame, _ = drawBoundingBoxes(faceCascade, frame, bboxes)
         else:
-            bboxes = detectFaces2(frame)
+            bboxes = detectFaces2(frame, net)
             for faces in bboxes:
                 drawBoxes(frame, faces)
 
@@ -282,7 +280,7 @@ if __name__ == "__main__" :
                 count_pulse = False
                 n_actions += 1
                 print("Jumping jack "+str(n_actions))
-                #requests.post("http://1efd0d38.ngrok.io/gordon/jump")
+                requests.post(f"http://{endpoint}/{name}/jump")
                 
 
         if haar == True:

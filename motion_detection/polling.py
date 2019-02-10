@@ -1,6 +1,6 @@
 import datetime
 import requests
-import calibrate_frame
+import calibrate_frame2
 import sys
 import time
 import webbrowser
@@ -17,7 +17,7 @@ def main(args):
     #     response = requests.get("http://{0}/{1}/alarm".format(endpoint, name))
     #     time.sleep(5)
 
-    calibrate_frame.main(endpoint, name)
+    calibrate_frame2.main(endpoint, name)
 
 
 if __name__ == '__main__':
