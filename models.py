@@ -23,7 +23,9 @@ class User():
         self.id = user_id
 
     def increment_jump(self):
-       self.__jumps_node.set(self.jumps + 1)
+        new_jumps = self.jumps + 1
+        self.__jumps_node.set(new_jumps)
+        return new_jumps
 
     def end_jump_session(self):
         self.__lifetime_jumps_node.set(self.lifetime_jumps + self.jumps)

@@ -6,6 +6,8 @@ verify_ssl = true
 [packages]
 flask = "*"
 firebase-admin = "*"
+flask-socketio = "*"
+eventlet = "*"
 
 [dev-packages]
 pylint = "*"
