@@ -1,6 +1,7 @@
 import firebase_admin
 from firebase_admin import credentials, db
 
+from dateutil.parser import *
 from datetime import datetime, timedelta
 
 cred = credentials.Certificate('firebase-sa-secret.json')
@@ -9,6 +10,7 @@ default_app = firebase_admin.initialize_app(cred, options={
 })
 
 DB = db.reference('/users')
+TIME_SERIES = db.reference('/time_series')
 
 JUMPS_KEY = 'jumps'
 LIFETIME_JUMP_KEY = 'lifetime_jumps'
@@ -28,6 +30,15 @@ class User():
     def increment_jump(self):
         new_jumps = self.jumps + 1
         self.__jumps_node.set(new_jumps)
+
+        jump_data = self.data
+        TIME_SERIES.push().set({
+            'user': self.id,
+            'timestamp': datetime.now().isoformat(),
+            'current_jumps': jump_data['jumps'],
+            'lifetime_jumps': jump_data['lifetime_jumps']
+        })
+
         return new_jumps
 
     def end_jump_session(self):
@@ -71,3 +82,21 @@ class User():
             return datetime.strptime(self.data['alarm'], '%Y-%m-%dT%H:%M:%SZ')
         except ValueError:
             return datetime.strptime(self.data['alarm'], '%Y-%m-%dT%H:%M:%S.000Z')
+
+def fmt_time_series(ts):
+    x = [point['timestamp'] for point in ts]
+    y = [point['current_jumps'] for point in ts]
+    two_mins_before = (parse(x[-1]) - timedelta(seconds=90)).isoformat()
+    layout = {
+        'title': 'Latest Activity',
+        'xaxis': {
+            'range': [two_mins_before, x[-1]]
+        }
+    }
+    return [{'x': x, 'y': y, 'type': 'scatter', 'mode': 'markers'}], layout
+
+
+def get_time_series(filter_user_name=''):
+    if filter_user_name:
+        return fmt_time_series([v for v in TIME_SERIES.get().values() if v['user'] == filter_user_name])
+    return fmt_time_series(TIME_SERIES.get().values())

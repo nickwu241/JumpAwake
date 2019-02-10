@@ -8,6 +8,8 @@ flask = "*"
 firebase-admin = "*"
 flask-socketio = "*"
 eventlet = "*"
+gunicorn = "*"
+python-dateutil = "*"
 
 [dev-packages]
 pylint = "*"

@@ -52,6 +52,14 @@ def index(path):
 def show_clients():
     return jsonify(clients)
 
+@app.route('/time_series')
+def show_time_series():
+    return jsonify(models.get_time_series())
+
+@app.route('/<user_id>/time_series')
+def show_user_time_series(user_id):
+    return jsonify(models.get_time_series(filter_user_name=user_id))
+
 @app.route('/<user_id>/alarm', methods=['GET', 'POST'])
 def user_alarms(user_id):
     if request.method == 'GET':
@@ -70,6 +78,8 @@ def user_jump(user_id):
             if c['user'] == user_id:
                 c['data']['jumps'] = models.User(user_id).increment_jump()
                 break
+        else:
+            models.User(user_id).increment_jump()
 
         __emit_jumps()
         return jsonify({'status': 'OK'})
