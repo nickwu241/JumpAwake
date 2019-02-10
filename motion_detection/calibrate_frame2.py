@@ -150,7 +150,7 @@ def checkAction(background_f, frame, y0, x0, height, width, version=0):
 
     return confidence, bbox_triggered
 
-def main(endpoint, name):
+def main(endpoint, name, duration):
     source = 0
 
     faceCascade = cv2.CascadeClassifier('./models/haarcascade_frontalface_default.xml')
@@ -225,7 +225,10 @@ def main(endpoint, name):
     n_actions = 0
     found = False
     count_pulse = False
-    while True:
+
+    start_time = time.time()
+
+    while (time.time() - start_time) < duration:
         hasFrame = True
         frame = cap.read()
         frame = imutils.resize(frame, width=400)
@@ -248,7 +251,10 @@ def main(endpoint, name):
                 cv2.imshow("Face Detection Comparison", frame_draw)
 
         for index, faces in enumerate(bboxes, start=0):
-            x0, y0, height, width = bboxes[0]
+            try:
+                x0, y0, height, width = bboxes[0]
+            except ValueError:
+                continue
             y0 = y0 - int(height/2)
             frame_cropped_check = frame[max(0, y0-height):y0, x0:x0+width]
             bkg_frame_check = background_frame[max(0, y0-height):y0, x0:x0+width]
