@@ -11,6 +11,7 @@ socketio = SocketIO(app)
 
 clients = {}
 
+# Socket Set Up
 def __emit_jumps():
     print('__emit_jumps()')
     socketio.emit('jumps', __get_encoded_client_data())
@@ -42,6 +43,7 @@ def disconnect():
     print("[WS] {} disconnected".format(request.sid))
     clients.pop(request.sid, None)
 
+# Backend Routing
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def index(path):
@@ -51,9 +53,17 @@ def index(path):
 def show_clients():
     return jsonify(clients)
 
+@app.route('/<user_id>/alarm', methods=['GET', 'POST'])
+def user_alarms(user_id):
+    if request.method == 'GET':
+        return str(models.User(user_id).seconds_until_alarm < 0)
+    elif request.method == 'POST':
+        models.User(user_id).set_alarm(request.data.decode())
+        return jsonify({'status': 'OK'})
+    abort(400)
 
 @app.route('/<user_id>/jump', methods=['GET', 'POST'])
-def jump(user_id):
+def user_jump(user_id):
     if request.method == 'GET':
         return jsonify(models.User(user_id).data)
     elif request.method == 'POST':
@@ -68,7 +78,7 @@ def jump(user_id):
     abort(400)
 
 @app.route('/<user_id>/jump/end', methods=['POST'])
-def end_jump_session(user_id):
+def user_end_jump_session(user_id):
     models.User(user_id).end_jump_session()
     socketio.emit('jumps', 0)
     return jsonify({'status': 'OK'})

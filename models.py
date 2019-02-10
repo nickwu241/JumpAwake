@@ -1,8 +1,9 @@
 import firebase_admin
 from firebase_admin import credentials, db
 
-cred = credentials.Certificate('firebase-sa-secret.json')
+from datetime import datetime
 
+cred = credentials.Certificate('firebase-sa-secret.json')
 default_app = firebase_admin.initialize_app(cred, options={
     'databaseURL': 'https://jump-awake.firebaseio.com'
 })
@@ -11,6 +12,7 @@ DB = db.reference('/users')
 
 JUMPS_KEY = 'jumps'
 LIFETIME_JUMP_KEY = 'lifetime_jumps'
+ALARM_KEY = 'alarm'
 
 class User():
     def __init__(self, user_id):
@@ -30,6 +32,16 @@ class User():
     def end_jump_session(self):
         self.__lifetime_jumps_node.set(self.lifetime_jumps + self.jumps)
         self.__jumps_node.set(0)
+
+    def set_alarm(self, timestamp):
+        return DB.child('{}/{}'.format(self.id, ALARM_KEY)).set(timestamp)
+
+    @property
+    def seconds_until_alarm(self):
+        alarm = datetime.strptime(self.data['alarm'], '%Y-%m-%dT%H:%M:%SZ')
+        now = datetime.utcnow()
+        dt = alarm - now
+        return dt.total_seconds()
 
     @property
     def data(self):

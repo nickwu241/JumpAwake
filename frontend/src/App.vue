@@ -1,8 +1,8 @@
 <template>
   <div id="app" class="conatiner">
-    <router-link to="/" class="nav-link">Home</router-link>
+    <!-- <router-link to="/" class="nav-link">Home</router-link>
     <router-link to="/nick" class="nav-link">Dashboard</router-link>
-    <router-link to="/nick/wakeup" class="nav-link">Wake Up</router-link>
+    <router-link to="/nick/wakeup" class="nav-link">Wake Up</router-link>-->
     <router-view></router-view>
   </div>
 </template>
@@ -20,5 +20,6 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+  margin-top: 60px;
 }
 </style>

@@ -1,7 +1,13 @@
 <template>
-  <div>
-    <h1 v-if="jumpCount !== null">Your jumps: {{jumpCount}}</h1>
-    <h1 v-if="otherUserJumpCount !== null">{{otherUser}}'s jumps: {{otherUserJumpCount}}</h1>
+  <div class="d-flex justify-content-around">
+    <div :class="{'h-half': hasOpponent}" v-if="jumpCount !== null">
+      <h1>Your jumps</h1>
+      <h1 class="big-number text-success">{{jumpCount}}</h1>
+    </div>
+    <div class="h-half" v-if="hasOpponent">
+      <h1>Their jumps</h1>
+      <h1 class="big-number text-danger">{{otherUserJumpCount}}</h1>
+    </div>
   </div>
 </template>
 
@@ -23,6 +29,11 @@ export default {
           this.jumpCount = response["jumps"];
         })
         .catch(err => console.error(err));
+    }
+  },
+  computed: {
+    hasOpponent: function() {
+      return this.otherUserJumpCount !== null;
     }
   },
   mounted: function() {
@@ -59,4 +70,12 @@ export default {
 </script>
 
 <style>
+.big-number {
+  font-size: 200px;
+}
+
+.h-half {
+  min-width: 50%;
+  max-width: 50%;
+}
 </style>
