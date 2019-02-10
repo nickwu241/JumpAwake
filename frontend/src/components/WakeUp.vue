@@ -54,7 +54,10 @@ export default {
           this.otherUser = otherUsers[0];
           this.otherUserJumpCount = data[this.otherUser]["jumps"];
         }
-        this.jumpCount = data[this.$route.params.userId]["jumps"];
+
+        if (data[this.$route.params.userId]) {
+          this.jumpCount = data[this.$route.params.userId]["jumps"];
+        }
       },
       connect() {
         this.$socket.emit("join", this.$route.params.userId);

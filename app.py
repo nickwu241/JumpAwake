@@ -6,7 +6,6 @@ from flask_socketio import SocketIO
 import models
 
 app = Flask(__name__, static_folder='dist/static', template_folder='dist')
-app.config['DEBUG'] = True
 socketio = SocketIO(app)
 
 clients = {}
@@ -69,10 +68,9 @@ def user_jump(user_id):
     elif request.method == 'POST':
         for c in clients.values():
             if c['user'] == user_id:
-                c['data']['jumps'] += models.User(user_id).increment_jump()
+                c['data']['jumps'] = models.User(user_id).increment_jump()
                 break
 
-        # models.User(user_id).increment_jump()
         __emit_jumps()
         return jsonify({'status': 'OK'})
     abort(400)
@@ -85,4 +83,4 @@ def user_end_jump_session(user_id):
 
 
 if __name__ == '__main__':
-    socketio.run(app)
+    socketio.run(app, host='0.0.0.0', debug=True)

@@ -9,7 +9,8 @@ import WakeUp from "./components/WakeUp.vue";
 
 Vue.config.productionTip = false
 Vue.use(VueRouter)
-Vue.use(VueWebsocket, 'http://localhost:5000');
+// Vue.use(VueWebsocket, 'http://localhost:5000');
+Vue.use(VueWebsocket);
 
 const routes = [{
     path: "/",
