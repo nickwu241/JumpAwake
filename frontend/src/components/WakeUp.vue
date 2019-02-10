@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>{{jumpCount}}</h1>
+    <h1 v-if="jumpCount !== null">{{jumpCount}}</h1>
   </div>
 </template>
 
@@ -9,7 +9,7 @@ export default {
   name: "wake-up",
   data: function() {
     return {
-      jumpCount: 0
+      jumpCount: null
     };
   },
   methods: {
@@ -21,12 +21,14 @@ export default {
     }
   },
   mounted: function() {
-    this.interval = setInterval(() => {
-      this.fetchCount();
-    }, 1000);
+    this.fetchCount();
   },
-  beforeDestroy: function() {
-    clearInterval(this.interval);
+  socket: {
+    events: {
+      jumps: function(jumpCount) {
+        this.jumpCount = jumpCount;
+      }
+    }
   }
 };
 </script>
