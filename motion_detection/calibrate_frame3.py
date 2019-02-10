@@ -99,6 +99,7 @@ def detectFaces2(frame, net, confidence_threshold=0.5):
 
 def checkAction(background_f, frame, y0, x0, height, width, version=0):
     verbose = False
+    debug = False
     #Convert frames to grayscale
     background_f_gray = cv2.cvtColor(background_f, cv2.COLOR_BGR2GRAY)
     frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -120,38 +121,41 @@ def checkAction(background_f, frame, y0, x0, height, width, version=0):
         thresh = cv2.threshold(frame_diff, 0, 255,
             cv2.THRESH_BINARY_INV )[1]
             #| cv2.THRESH_OTSU
-        cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
-            cv2.CHAIN_APPROX_SIMPLE)
-        cnts = imutils.grab_contours(cnts)
+        if debug == True:    
+            cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
+                cv2.CHAIN_APPROX_SIMPLE)
+            cnts = imutils.grab_contours(cnts)
 
-        if len(cnts) > 0:
-            c_max = max(cnts, key=cv2.contourArea)
-            (x, y, w, h) = cv2.boundingRect(c_max)
-            bbox_triggered = [x, y, w, h]
+            if len(cnts) > 0:
+                c_max = max(cnts, key=cv2.contourArea)
+                (x, y, w, h) = cv2.boundingRect(c_max)
+                bbox_triggered = [x, y, w, h]
 
-            if verbose == True:
-                if w > width/2:
-                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
-                cv2.imshow("Diff"+str(version), frame_diff)
-                cv2.imshow("Thresh"+str(version), thresh)
-        else:
-            for c in cnts:
-                # compute the bounding box of the contour and then draw the
-                # bounding box on both input images to represent where the two
-                # images differ
                 if verbose == True:
-                    (x, y, w, h) = cv2.boundingRect(c)
-                    #cv2.rectangle(background_f, (x, y), (x + w, y + h), (0, 0, 255), 2)
-                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                    if w > width/2:
+                        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
                     cv2.imshow("Diff"+str(version), frame_diff)
                     cv2.imshow("Thresh"+str(version), thresh)
+            else:
+                for c in cnts:
+                    # compute the bounding box of the contour and then draw the
+                    # bounding box on both input images to represent where the two
+                    # images differ
+                    if verbose == True:
+                        (x, y, w, h) = cv2.boundingRect(c)
+                        #cv2.rectangle(background_f, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                        cv2.imshow("Diff"+str(version), frame_diff)
+                        cv2.imshow("Thresh"+str(version), thresh)
+        else:
+            bbox_triggered = [0,0,0,0]
     confidence = score
 
     return confidence, bbox_triggered
 
 def main(endpoint, name, duration):
     source = 0
-
+    debug = False
     haar = False
     if haar == True:
         faceCascade = cv2.CascadeClassifier('./models/haarcascade_frontalface_default.xml')
@@ -163,7 +167,7 @@ def main(endpoint, name, duration):
     #cap = cv2.VideoCapture(source)
     # initialize the video stream and allow the cammera sensor to warmup
     cap = VideoStream(usePiCamera=-1 > 0).start()
-    time.sleep(2.0)
+    time.sleep(.5)
 
     frame = cap.read()
     frame = imutils.resize(frame, width=400)
@@ -211,11 +215,12 @@ def main(endpoint, name, duration):
             
         else:
             bboxes = detectFaces2(frame, net)
-            for faces in bboxes:
-                drawBoxes(frame, faces, 255,0,255)
+            if debug == True:
+                for faces in bboxes:
+                    drawBoxes(frame, faces, 255,0,255)
 
-
-        cv2.imshow("Face Detection Comparison", frame)
+        if debug == True:
+            cv2.imshow("Face Detection Comparison", frame)
 
         k = cv2.waitKey(10)
         if k == 27:
@@ -248,9 +253,10 @@ def main(endpoint, name, duration):
             outOpencvHaar, _ = drawBoundingBoxes(faceCascade, frame, bboxes)
         else:
             #bboxes = detectFaces2(frame)
-            for faces in bboxes:
-                frame_draw = drawBoxes(frame, faces,0,255,0)
-                cv2.imshow("Face Detection Comparison", frame_draw)
+            if debug == True:
+                for faces in bboxes:
+                    frame_draw = drawBoxes(frame, faces,0,255,0)
+                    cv2.imshow("Face Detection Comparison", frame_draw)
 
         for index, faces in enumerate(bboxes, start=0):
             try:
@@ -265,9 +271,9 @@ def main(endpoint, name, duration):
             diff, bbox_triggered = checkAction(bkg_frame_check, frame_cropped_check, y0, x0, width, width, 0)
             #print(str(bboxes[0])) #[x, y, w, h]
             if len(bbox_triggered)>1 and bbox_triggered[2] > width/2:
-
-                frame_draw = drawBoxes(frame_draw, [x0,max(0, y0-height),bbox_triggered[2],bbox_triggered[3]], 0,0,255)
-                cv2.imshow("Face Detection Comparison", frame_draw)
+                if debug == True:
+                    frame_draw = drawBoxes(frame_draw, [x0,max(0, y0-height),bbox_triggered[2],bbox_triggered[3]], 0,0,255)
+                    cv2.imshow("Face Detection Comparison", frame_draw)
 
             if diff < trip_threshold: #reset state
                 if found == False: #Rising edge
