@@ -85,6 +85,12 @@ def user_jump(user_id):
         return jsonify({'status': 'OK'})
     abort(400)
 
+@app.route('/<user_id>/jump/finish', methods=['POST'])
+def user_finish_jump_session(user_id):
+    socketio.emit('jumpFinished', 'finished')
+    return jsonify({'status': 'OK'})
+
+
 @app.route('/<user_id>/jump/end', methods=['POST'])
 def user_end_jump_session(user_id):
     models.User(user_id).end_jump_session()

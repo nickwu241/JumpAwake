@@ -1,12 +1,17 @@
 <template>
-  <div class="d-flex justify-content-around">
-    <div :class="{'h-half': hasOpponent}" v-if="jumpCount !== null">
-      <h1>Your jumps</h1>
-      <h1 class="big-number text-success">{{jumpCount}}</h1>
-    </div>
-    <div class="h-half" v-if="hasOpponent">
-      <h1>Their jumps</h1>
-      <h1 class="big-number text-danger">{{otherUserJumpCount}}</h1>
+  <div>
+    <h1 v-if="hasFinished" class="display-1 mb-5 text-success">
+      <strong>Congratualtions!</strong>
+    </h1>
+    <div class="d-flex justify-content-around">
+      <div :class="{'h-half': hasOpponent}" v-if="jumpCount !== null">
+        <h1>Your jumps</h1>
+        <h1 class="big-number text-success">{{jumpCount}}</h1>
+      </div>
+      <div class="h-half" v-if="hasOpponent">
+        <h1>Their jumps</h1>
+        <h1 class="big-number text-danger">{{otherUserJumpCount}}</h1>
+      </div>
     </div>
   </div>
 </template>
@@ -18,7 +23,8 @@ export default {
     return {
       jumpCount: null,
       otherUsername: "",
-      otherUserJumpCount: null
+      otherUserJumpCount: null,
+      hasFinished: false
     };
   },
   methods: {
@@ -58,6 +64,10 @@ export default {
         if (data[this.$route.params.userId]) {
           this.jumpCount = data[this.$route.params.userId]["jumps"];
         }
+      },
+      jumpFinished(data) {
+        this.hasFinished = true;
+        setTimeout(() => (this.hasFinished = false), 15000);
       },
       connect() {
         this.$socket.emit("join", this.$route.params.userId);

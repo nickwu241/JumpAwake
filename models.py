@@ -89,7 +89,7 @@ def fmt_time_series(ts):
         return [{'x':[], 'y': [], 'type': 'scatter'}]
     x = [point['timestamp'] for point in ts]
     y = [point['current_jumps'] for point in ts]
-    two_mins_before = (parse(x[-1]) - timedelta(seconds=90)).isoformat()
+    two_mins_before = (parse(x[-1]) - timedelta(seconds=45)).isoformat()
     layout = {
         'title': 'Latest Activity',
         'xaxis': {
