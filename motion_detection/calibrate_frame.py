@@ -3,7 +3,7 @@ import cv2
 import time
 import sys
 import datetime
-import requests
+import grequests
 
 import numpy as np
 import imutils
@@ -65,7 +65,7 @@ def checkAction(background_f, frame, y0, x0, height, width, version=0):
         cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
             cv2.CHAIN_APPROX_SIMPLE)
         cnts = imutils.grab_contours(cnts)
-        
+
         if len(cnts) > 0:
             c_max = max(cnts, key=cv2.contourArea)
             (x, y, w, h) = cv2.boundingRect(c_max)
@@ -88,21 +88,17 @@ def checkAction(background_f, frame, y0, x0, height, width, version=0):
     confidence = score
     return confidence
 
-if __name__ == "__main__" :
-    source = 0
-    if len(sys.argv) > 1:
-        source = sys.argv[1]
-
+def main(endpoint, name):
     faceCascade = cv2.CascadeClassifier('./models/haarcascade_frontalface_default.xml')
 
-    cap = cv2.VideoCapture(source)
+    cap = cv2.VideoCapture(0)
     hasFrame, frame = cap.read()
     current_time = datetime.datetime.now()
     finish = current_time + datetime.timedelta(seconds=3)
 
     frame_count = 0
     tt_opencvHaar = 0
-    vid_writer = cv2.VideoWriter('output-haar-{}.avi'.format(str(source).split(".")[0]),cv2.VideoWriter_fourcc('M','J','P','G'), 15, (frame.shape[1],frame.shape[0]))
+    vid_writer = cv2.VideoWriter('output-haar-{}.avi'.format(str(0).split(".")[0]),cv2.VideoWriter_fourcc('M','J','P','G'), 15, (frame.shape[1],frame.shape[0]))
     avg2 = np.float32(frame)
     background_frame = None
 
@@ -140,7 +136,7 @@ if __name__ == "__main__" :
         if k == 27:
             break
 
-    state = 0 
+    state = 0
     trip_threshold = 0.5
     jump_timeout_time = 1
     jump_debounce_time = .5
@@ -157,19 +153,19 @@ if __name__ == "__main__" :
         #0 - looking for action
         #1 - jump in action
 
-        
+
 
         t = time.time()
         outOpencvHaar, _ = drawBoundingBoxes(faceCascade, frame, bboxes)
-        
+
         for index, faces in enumerate(bboxes, start=0):
             x0, y0, height, width = bboxes[0]
             y0 = y0 - int(height/2)
             frame_cropped_check = frame[max(0, y0-height):y0, x0:x0+width]
             bkg_frame_check = background_frame[max(0, y0-height):y0, x0:x0+width]
-            
+
             diff = checkAction(bkg_frame_check, frame_cropped_check, y0, x0, height, width, 0)
-            
+
             # if diff < trip_threshold and not found:
             #     print("in air")
             #     found = True
@@ -177,11 +173,11 @@ if __name__ == "__main__" :
             # elif diff > trip_threshold and found:
             #     print("jump detected")
             #     found = False
-            
+
             if diff < trip_threshold: #reset state
                 if found == False: #Rising edge
                     jump_start_time = time.time()
-                found = True     
+                found = True
             else:
                 if found == True: #Falling edge
                     jump_stop_time = time.time()
@@ -192,12 +188,12 @@ if __name__ == "__main__" :
                         if pulse_duration < jump_debounce_time:
                             count_pulse = True
                 found = False
-            
+
             if count_pulse == True:
                 count_pulse = False
                 n_actions += 1
                 print("Jumping jack "+str(n_actions))
-                requests.post("http://1efd0d38.ngrok.io/gordon/jump")
+                grequests.post("http://{0}/{1}/jump".format(endpoint, name))
 
 
 
