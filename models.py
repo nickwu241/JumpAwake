@@ -41,7 +41,8 @@ class User():
         alarm = datetime.strptime(self.data['alarm'], '%Y-%m-%dT%H:%M:%SZ')
         now = datetime.utcnow()
         dt = alarm - now
-        return dt.total_seconds()
+        # Give 30 second delay for camera to warm up
+        return dt.total_seconds() + 30
 
     @property
     def data(self):
