@@ -1,6 +1,7 @@
 import datetime
 import requests
 import calibrate_frame
+import sys
 import time
 import webbrowser
 
@@ -17,3 +18,7 @@ def main(args):
     #     time.sleep(5)
 
     calibrate_frame.main(endpoint, name)
+
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
