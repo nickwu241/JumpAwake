@@ -1,7 +1,14 @@
 # Secrets
 firebase-sa-secret.json
+gce-sa-secret.json
 
 .vscode
+
+.terraform
+terraform.tfstate
+terraform.tfstate.backup
+
+.git
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
