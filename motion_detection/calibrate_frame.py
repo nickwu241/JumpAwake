@@ -4,52 +4,36 @@ import time
 import sys
 import datetime
 
-def detectFaceOpenCVHaarExistingFrames(faceCascade, frame, bboxes, inHeight=300, inWidth=0):
-    frameOpenCVHaar = frame.copy()
-    frameHeight = frameOpenCVHaar.shape[0]
-    frameWidth = frameOpenCVHaar.shape[1]
-    if not inWidth:
-        inWidth = int((frameWidth / frameHeight) * inHeight)
+def downscale_frame(frame, scaled_height=300):
+    new_frame = frame.copy()
+    height, width, _ = new_frame.shape
 
-    scaleHeight = frameHeight / inHeight
-    scaleWidth = frameWidth / inWidth
+    scaled_width = int((width / height) * scaled_height)
+    return cv2.resize(new_frame, (scaled_width, scaled_height))
 
-    frameOpenCVHaarSmall = cv2.resize(frameOpenCVHaar, (inWidth, inHeight))
-    frameGray = cv2.cvtColor(frameOpenCVHaarSmall, cv2.COLOR_BGR2GRAY)
 
-    for cvRect in bboxes:
-        cv2.rectangle(frameOpenCVHaar, (cvRect[0], cvRect[1]), (cvRect[2], cvRect[3]), (0, 255, 0),
+def drawBoundingBoxes(faceCascade, frame, bboxes):
+    frameHeight, _, _ = frame.shape
+
+    for x, y, w, h in bboxes:
+        cv2.rectangle(frame, (x, y), (x + w, y - h), (0, 255, 0),
                       int(round(frameHeight / 150)), 4)
-    return frameOpenCVHaar, bboxes
+    return frame, bboxes
 
-def detectFaceOpenCVHaar(faceCascade, frame, inHeight=300, inWidth=0):
+def detectFaces(faceCascade, frame, inHeight=300, inWidth=0):
     frameOpenCVHaar = frame.copy()
-    frameHeight = frameOpenCVHaar.shape[0]
-    print(frameHeight)
-    frameWidth = frameOpenCVHaar.shape[1]
-    if not inWidth:
-        inWidth = int((frameWidth / frameHeight) * inHeight)
+    frameHeight, frameWidth, _ = frameOpenCVHaar.shape
 
-    scaleHeight = frameHeight / inHeight
-    scaleWidth = frameWidth / inWidth
+    scaled_frame = downscale_frame(frame)
+    scaledHeight, scaledWidth, _ = scaled_frame.shape
 
-    frameOpenCVHaarSmall = cv2.resize(frameOpenCVHaar, (inWidth, inHeight))
-    frameGray = cv2.cvtColor(frameOpenCVHaarSmall, cv2.COLOR_BGR2GRAY)
+    frameGray = cv2.cvtColor(scaled_frame, cv2.COLOR_BGR2GRAY)
 
-    faces = faceCascade.detectMultiScale(frameGray)
-    bboxes = []
-    for (x, y, w, h) in faces:
-        x1 = x
-        y1 = y
-        print(y)
-        x2 = x + w
-        y2 = y + h
-        cvRect = [int(x1 * scaleWidth), int(y1 * scaleHeight),
-                  int(x2 * scaleWidth), int(y2 * scaleHeight)]
-        bboxes.append(cvRect)
-        cv2.rectangle(frameOpenCVHaar, (cvRect[0], cvRect[1]), (cvRect[2], cvRect[3]), (0, 255, 0),
-                      int(round(frameHeight / 150)), 4)
-    return frameOpenCVHaar, bboxes
+    boundingBoxes = faceCascade.detectMultiScale(frameGray)
+    ratio_x = frameWidth / scaledWidth
+    ratio_y = frameHeight / scaledHeight
+
+    return [( int(x * ratio_y), int(y * ratio_x), int(w * ratio_x) , int(h * ratio_y) ) for (x, y, w, h) in boundingBoxes]
 
 if __name__ == "__main__" :
     source = 0
@@ -75,16 +59,17 @@ if __name__ == "__main__" :
         frame_count += 1
 
         t = time.time()
-        outOpencvHaar, bboxes = detectFaceOpenCVHaar(faceCascade, frame)
+        bboxes = detectFaces(faceCascade, frame)
+        frame, _ = drawBoundingBoxes(faceCascade, frame, bboxes)
         tt_opencvHaar += time.time() - t
         fpsOpencvHaar = frame_count / tt_opencvHaar
 
         label = "OpenCV Haar ; FPS : {:.2f}".format(fpsOpencvHaar)
-        cv2.putText(outOpencvHaar, label, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.4, (0, 0, 255), 3, cv2.LINE_AA)
+        cv2.putText(frame, label, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.4, (0, 0, 255), 3, cv2.LINE_AA)
 
-        cv2.imshow("Face Detection Comparison", outOpencvHaar)
+        cv2.imshow("Face Detection Comparison", frame)
 
-        vid_writer.write(outOpencvHaar)
+        vid_writer.write(frame)
         if frame_count == 1:
             tt_opencvHaar = 0
         k = cv2.waitKey(10)
@@ -99,7 +84,7 @@ if __name__ == "__main__" :
         frame_count += 1
 
         t = time.time()
-        outOpencvHaar, _ = detectFaceOpenCVHaarExistingFrames(faceCascade, frame, bboxes)
+        outOpencvHaar, _ = drawBoundingBoxes(faceCascade, frame, bboxes)
         tt_opencvHaar += time.time() - t
         fpsOpencvHaar = frame_count / tt_opencvHaar
 
