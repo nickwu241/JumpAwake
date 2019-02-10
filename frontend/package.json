@@ -46,6 +46,7 @@
     "not ie <= 8"
   ],
   "vue": {
+    "assetsDir": "static",
     "devServer": {
       "proxy": "http://localhost:5000"
     }

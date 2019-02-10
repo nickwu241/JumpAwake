@@ -1,19 +1,55 @@
 #!/usr/bin/env python
 
-from flask import Flask, abort, jsonify, request
+from flask import Flask, abort, jsonify, request, send_from_directory, render_template
 from flask_socketio import SocketIO
 
 import models
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='dist/static', template_folder='dist')
 app.config['DEBUG'] = True
 socketio = SocketIO(app)
 
-jump_count = 0
+clients = {}
 
-@app.route('/')
-def hello_world():
-    return 'Hello, World!'
+def __emit_jumps():
+    print('__emit_jumps()')
+    socketio.emit('jumps', __get_encoded_client_data())
+
+def __get_encoded_client_data():
+    return {c['user']: c['data'] for c in clients.values()}
+
+@socketio.on('join')
+def join(user):
+    print("[WS] {} connected via join".format(request.sid))
+    clients[request.sid] = {
+        'user': user,
+        'data': models.User(user).data
+    }
+    if len(clients) >= 2:
+        __emit_jumps()
+
+@socketio.on('leave')
+def leave(data):
+    print("[WS] {} disconnected via leave".format(request.sid))
+    clients.pop(request.sid, None)
+
+@socketio.on('connect')
+def connect():
+    print("[WS] {} connected".format(request.sid))
+
+@socketio.on('disconnect')
+def disconnect():
+    print("[WS] {} disconnected".format(request.sid))
+    clients.pop(request.sid, None)
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def index(path):
+    return render_template('index.html')
+
+@app.route('/clients')
+def show_clients():
+    return jsonify(clients)
 
 
 @app.route('/<user_id>/jump', methods=['GET', 'POST'])
@@ -21,7 +57,13 @@ def jump(user_id):
     if request.method == 'GET':
         return jsonify(models.User(user_id).data)
     elif request.method == 'POST':
-        socketio.emit('jumps', models.User(user_id).increment_jump())
+        for c in clients.values():
+            if c['user'] == user_id:
+                c['data']['jumps'] += 1
+                break
+
+        models.User(user_id).increment_jump()
+        __emit_jumps()
         return jsonify({'status': 'OK'})
     abort(400)
 

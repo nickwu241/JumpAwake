@@ -1,9 +1,8 @@
 <template>
   <div id="app" class="conatiner">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <router-link to="/">Home</router-link>
-      <router-link to="/wakeup">Wake Up</router-link>
-    </nav>
+    <router-link to="/" class="nav-link">Home</router-link>
+    <router-link to="/nick" class="nav-link">Dashboard</router-link>
+    <router-link to="/nick/wakeup" class="nav-link">Wake Up</router-link>
     <router-view></router-view>
   </div>
 </template>

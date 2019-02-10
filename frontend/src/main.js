@@ -3,8 +3,9 @@ import VueRouter from 'vue-router'
 import VueWebsocket from "vue-websocket";
 
 import App from './App.vue'
-import WakeUp from "./components/WakeUp.vue";
 import Home from "./components/Home.vue";
+import Dashboard from "./components/Dashboard.vue";
+import WakeUp from "./components/WakeUp.vue";
 
 Vue.config.productionTip = false
 Vue.use(VueRouter)
@@ -15,7 +16,11 @@ const routes = [{
     component: Home
   },
   {
-    path: "/wakeup",
+    path: "/:userId",
+    component: Dashboard
+  },
+  {
+    path: "/:userId/wakeup",
     component: WakeUp
   }
 ];
@@ -24,7 +29,7 @@ const router = new VueRouter({
   routes
 });
 
-new Vue({
+var app = new Vue({
   router,
   render: h => h(App),
 }).$mount('#app')
