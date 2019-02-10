@@ -8,6 +8,7 @@ import requests
 import numpy as np
 import imutils
 from skimage.measure import compare_ssim
+from imutils.video import VideoStream
 
 def downscale_frame(frame, scaled_height=300):
     new_frame = frame.copy()
@@ -25,6 +26,30 @@ def drawBoundingBoxes(faceCascade, frame, bboxes):
                       int(round(frameHeight / 150)), 4)
     return frame, bboxes
 
+def drawBoxes(frame, faceFrames):
+    #print(str(faceFrames.shape))
+    #print(str(len(faceFrames)/4))
+    if True:
+        #for faces in range(0, len(faceFrames)/4):
+        if len(faceFrames)<4:
+            pass
+        else:
+            #[startX, startY, endX, endY] = faceFrames
+            [x0, y0, width, height] = faceFrames
+
+            #text = "{:.2f}%".format(confidence * 100)
+            # y = startY - 10
+            # if startY - 10 > 10:
+            #     pass
+            # else:
+            #     startY + 10
+           # cv2.rectangle(frame, (startX, startY), (endX, endY), (0, 0, 255), 2)
+            cv2.rectangle(frame, (x0, y0), (x0+width, y0+height), (255, 0, 255), 2)
+
+            #cv2.putText(frame, text, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
+    #cv2.imshow("Frame", frame)
+    return frame
+
 def detectFaces(faceCascade, frame, inHeight=300, inWidth=0):
     frameOpenCVHaar = frame.copy()
     frameHeight, frameWidth, _ = frameOpenCVHaar.shape
@@ -39,6 +64,39 @@ def detectFaces(faceCascade, frame, inHeight=300, inWidth=0):
     ratio_y = frameHeight / scaledHeight
 
     return [( int(x * ratio_y), int(y * ratio_x), int(w * ratio_x) , int(h * ratio_y) ) for (x, y, w, h) in boundingBoxes]
+
+def detectFaces2(frame, confidence_threshold=0.5):
+    # grab the frame dimensions and convert it to a blob
+    (h, w) = frame.shape[:2]
+    blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0,
+        (300, 300), (104.0, 177.0, 123.0))
+
+    # pass the blob through the network and obtain the detections and
+    # predictions
+    net.setInput(blob)
+    detections = net.forward()
+    faceFrames = [[] for _ in range(detections.shape[2])]
+    # loop over the detections
+    for i in range(0, detections.shape[2]):
+        # extract the confidence (i.e., probability) associated with the
+        # prediction
+        confidence = detections[0, 0, i, 2]
+
+        # filter out weak detections by ensuring the `confidence` is
+        # greater than the minimum confidence
+        if confidence < confidence_threshold:
+            continue
+
+        # compute the (x, y)-coordinates of the bounding box for the
+        # object
+        box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
+        (startX, startY, endX, endY) = box.astype("int")
+
+        #faceFrames[i] = [startX, startY, endX, endY]
+        faceFrames[i]  = [startX, startY, endX-startX, endY-startY]
+        #[x0, y0, width, height]
+
+    return faceFrames
 
 def checkAction(background_f, frame, y0, x0, height, width, version=0):
     verbose = False
@@ -55,6 +113,7 @@ def checkAction(background_f, frame, y0, x0, height, width, version=0):
             print("Score under 0.5!")
 
     c_max = None
+    bbox_triggered = []
     #To locate the differences
     if True:
         #Threshold the difference image, followed by finding contours to
@@ -69,9 +128,11 @@ def checkAction(background_f, frame, y0, x0, height, width, version=0):
         if len(cnts) > 0:
             c_max = max(cnts, key=cv2.contourArea)
             (x, y, w, h) = cv2.boundingRect(c_max)
-            if w > width/2:
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+            bbox_triggered = [x, y, w, h]
+
             if verbose == True:
+                if w > width/2:
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
                 cv2.imshow("Diff"+str(version), frame_diff)
                 cv2.imshow("Thresh"+str(version), thresh)
         else:
@@ -86,13 +147,23 @@ def checkAction(background_f, frame, y0, x0, height, width, version=0):
                     cv2.imshow("Diff"+str(version), frame_diff)
                     cv2.imshow("Thresh"+str(version), thresh)
     confidence = score
-    return confidence
+
+    return confidence, bbox_triggered
 
 def main(endpoint, name):
     faceCascade = cv2.CascadeClassifier('./models/haarcascade_frontalface_default.xml')
 
-    cap = cv2.VideoCapture(0)
-    hasFrame, frame = cap.read()
+    #DNN METHOD load our serialized model from disk
+    print("[INFO] loading model...")
+    net = cv2.dnn.readNetFromCaffe("deploy.prototxt.txt", "res10_300x300_ssd_iter_140000.caffemodel")
+
+    #cap = cv2.VideoCapture(source)
+    # initialize the video stream and allow the cammera sensor to warmup
+    cap = VideoStream(usePiCamera=-1 > 0).start()
+    time.sleep(2.0)
+    hasFrame = True
+    frame = cap.read()
+    frame = imutils.resize(frame, width=400)
     current_time = datetime.datetime.now()
     finish = current_time + datetime.timedelta(seconds=3)
 
@@ -101,11 +172,15 @@ def main(endpoint, name):
     vid_writer = cv2.VideoWriter('output-haar-{}.avi'.format(str(0).split(".")[0]),cv2.VideoWriter_fourcc('M','J','P','G'), 15, (frame.shape[1],frame.shape[0]))
     avg2 = np.float32(frame)
     background_frame = None
+    haar = False
 
     #Start up calibration
     while current_time < finish:
         current_time = datetime.datetime.now()
-        hasFrame, frame = cap.read()
+        hasFrame =True
+        frame = cap.read()
+        frame = imutils.resize(frame, width=400)
+        frame = cv2.flip( frame, 1 )
         if not hasFrame:
             break
         frame_count += 1
@@ -114,10 +189,13 @@ def main(endpoint, name):
         background_frame = cv2.GaussianBlur(frame, (5,5), 0)
         cv2.accumulateWeighted(background_frame,avg2,0.01)
 
-        bboxes = detectFaces(faceCascade, frame)
-        #shift bounding box up 50% of height to clear user head
-        #bboxes = [bboxes[:][0], bboxes[:][1]-bboxes[:][3]/2, bboxes[:][2], bboxes[:][3]]
-        frame, _ = drawBoundingBoxes(faceCascade, frame, bboxes)
+        if haar == True:
+            bboxes = detectFaces(faceCascade, frame)
+            frame, _ = drawBoundingBoxes(faceCascade, frame, bboxes)
+        else:
+            bboxes = detectFaces2(frame)
+            for faces in bboxes:
+                drawBoxes(frame, faces)
 
 
 
@@ -139,14 +217,17 @@ def main(endpoint, name):
     state = 0
     trip_threshold = 0.5
     jump_timeout_time = 1
-    jump_debounce_time = .5
+    jump_debounce_time = .1
     jump_start_time = time.time()
     jump_stop_time = time.time()
     n_actions = 0
     found = False
     count_pulse = False
     while True:
-        hasFrame, frame = cap.read()
+        hasFrame = True
+        frame = cap.read()
+        frame = imutils.resize(frame, width=400)
+        frame = cv2.flip( frame, 1 )
         if not hasFrame:
             break
         frame_count += 1
@@ -156,23 +237,27 @@ def main(endpoint, name):
 
 
         t = time.time()
-        outOpencvHaar, _ = drawBoundingBoxes(faceCascade, frame, bboxes)
+        if haar == True:
+            outOpencvHaar, _ = drawBoundingBoxes(faceCascade, frame, bboxes)
+        else:
+            #bboxes = detectFaces2(frame)
+            for faces in bboxes:
+                frame_draw = drawBoxes(frame, faces)
+                cv2.imshow("Face Detection Comparison", frame_draw)
 
         for index, faces in enumerate(bboxes, start=0):
             x0, y0, height, width = bboxes[0]
             y0 = y0 - int(height/2)
             frame_cropped_check = frame[max(0, y0-height):y0, x0:x0+width]
             bkg_frame_check = background_frame[max(0, y0-height):y0, x0:x0+width]
+            
+            diff, bbox_triggered = checkAction(bkg_frame_check, frame_cropped_check, y0, x0, height, width, 0)
+            print(str(round(time.time(),2))+"s " +str(round(diff,3)))
+            #print(str(bboxes[0])) #[x, y, w, h]
+            if len(bbox_triggered)>1 and bbox_triggered[2] > width/2:
 
-            diff = checkAction(bkg_frame_check, frame_cropped_check, y0, x0, height, width, 0)
-
-            # if diff < trip_threshold and not found:
-            #     print("in air")
-            #     found = True
-            #     time.sleep(0.1)
-            # elif diff > trip_threshold and found:
-            #     print("jump detected")
-            #     found = False
+                frame_draw = drawBoxes(frame_draw, [x0,max(0, y0-height),bbox_triggered[2],bbox_triggered[3]])
+                cv2.imshow("Face Detection Comparison", frame_draw)
 
             if diff < trip_threshold: #reset state
                 if found == False: #Rising edge
@@ -185,7 +270,7 @@ def main(endpoint, name):
                         print("Pulse Time: "+str(round(jump_stop_time-jump_start_time, 2)))
                         pulse_duration = round(jump_stop_time-jump_start_time, 2)
 
-                        if pulse_duration < jump_debounce_time:
+                        if pulse_duration < jump_timeout_time and pulse_duration > jump_debounce_time:
                             count_pulse = True
                 found = False
 
@@ -193,24 +278,20 @@ def main(endpoint, name):
                 count_pulse = False
                 n_actions += 1
                 print("Jumping jack "+str(n_actions))
-                try:
-                    requests.post("http://{0}/{1}/jump".format(endpoint, name), timeout=0.0000001)
-                except requests.exceptions.ReadTimeout:
-                    pass
+                requests.post("http://1efd0d38.ngrok.io/gordon/jump")
 
 
+        if haar == True:
+            tt_opencvHaar += time.time() - t
+            fpsOpencvHaar = frame_count / tt_opencvHaar
 
-        tt_opencvHaar += time.time() - t
-        fpsOpencvHaar = frame_count / tt_opencvHaar
+            label = "OpenCV Haar ; FPS : {:.2f}".format(fpsOpencvHaar)
+            cv2.putText(outOpencvHaar, label, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.4, (0, 0, 255), 3, cv2.LINE_AA)
+            cv2.imshow("Face Detection Comparison", outOpencvHaar)
 
-        label = "OpenCV Haar ; FPS : {:.2f}".format(fpsOpencvHaar)
-        cv2.putText(outOpencvHaar, label, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.4, (0, 0, 255), 3, cv2.LINE_AA)
-
-        cv2.imshow("Face Detection Comparison", outOpencvHaar)
-
-        vid_writer.write(outOpencvHaar)
-        if frame_count == 1:
-            tt_opencvHaar = 0
+            vid_writer.write(outOpencvHaar)
+            if frame_count == 1:
+                tt_opencvHaar = 0
 
         k = cv2.waitKey(10)
         if k == 27:
