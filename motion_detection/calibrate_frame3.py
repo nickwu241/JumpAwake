@@ -100,7 +100,7 @@ def detectFaces2(frame, net, confidence_threshold=0.5):
 
 def checkAction(background_f, frame, y0, x0, height, width, version=0):
     verbose = False
-    debug = False
+    debug = True
     #Convert frames to grayscale
     background_f_gray = cv2.cvtColor(background_f, cv2.COLOR_BGR2GRAY)
     frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -116,7 +116,7 @@ def checkAction(background_f, frame, y0, x0, height, width, version=0):
     c_max = None
     bbox_triggered = []
     #To locate the differences
-    if True:
+    if False:
         #Threshold the difference image, followed by finding contours to
         # obtain the regions of the two input images that differ
         thresh = cv2.threshold(frame_diff, 0, 255,
@@ -148,15 +148,15 @@ def checkAction(background_f, frame, y0, x0, height, width, version=0):
                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
                         cv2.imshow("Diff"+str(version), frame_diff)
                         cv2.imshow("Thresh"+str(version), thresh)
-        else:
-            bbox_triggered = [0,0,0,0]
+    else:
+        bbox_triggered = [0,0,0,0]
     confidence = score
 
     return confidence, bbox_triggered
 
 def main(endpoint, name, duration):
     source = 0
-    debug = False
+    debug = True
     haar = False
     if haar == True:
         faceCascade = cv2.CascadeClassifier('./models/haarcascade_frontalface_default.xml')
@@ -319,6 +319,7 @@ def main(endpoint, name, duration):
         if k == 27:
             break
     cv2.destroyAllWindows()
+    time.sleep(0.5)
 
     if haar == True:
         vid_writer.release()
