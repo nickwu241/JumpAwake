@@ -1,0 +1,50 @@
+import firebase_admin
+from firebase_admin import credentials, db
+
+cred = credentials.Certificate('firebase-sa-secret.json')
+
+default_app = firebase_admin.initialize_app(cred, options={
+    'databaseURL': 'https://jump-awake.firebaseio.com'
+})
+
+DB = db.reference('/users')
+
+JUMPS_KEY = 'jumps'
+LIFETIME_JUMP_KEY = 'lifetime_jumps'
+
+class User():
+    def __init__(self, user_id):
+        # Create user if doesn't exist
+        if not DB.child(user_id).get():
+            DB.child(user_id).set({
+                JUMPS_KEY: 0,
+                LIFETIME_JUMP_KEY: 0
+            })
+        self.id = user_id
+
+    def increment_jump(self):
+       self.__jumps_node.set(self.jumps + 1)
+
+    def end_jump_session(self):
+        self.__lifetime_jumps_node.set(self.lifetime_jumps + self.jumps)
+        self.__jumps_node.set(0)
+
+    @property
+    def data(self):
+        return DB.child(self.id).get()
+
+    @property
+    def jumps(self):
+        return int(self.__jumps_node.get())
+
+    @property
+    def lifetime_jumps(self):
+        return int(self.__lifetime_jumps_node.get())
+
+    @property
+    def __lifetime_jumps_node(self):
+        return DB.child('{}/{}'.format(self.id, LIFETIME_JUMP_KEY))
+
+    @property
+    def __jumps_node(self):
+        return DB.child('{}/{}'.format(self.id, JUMPS_KEY))

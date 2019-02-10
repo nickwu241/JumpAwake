@@ -5,12 +5,12 @@ verify_ssl = true
 
 [packages]
 flask = "*"
+firebase-admin = "*"
 
 [dev-packages]
 pylint = "*"
 rope = "*"
 autopep8 = "*"
-
 
 [requires]
 python_version = "3"
