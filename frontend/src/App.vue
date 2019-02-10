@@ -22,4 +22,13 @@ export default {
   color: #2c3e50;
   margin-top: 60px;
 }
+
+.big-number {
+  font-size: 200px;
+}
+
+.h-half {
+  min-width: 50%;
+  max-width: 50%;
+}
 </style>
