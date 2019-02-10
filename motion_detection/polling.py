@@ -6,7 +6,7 @@ import sys
 import time
 import webbrowser
 
-endpoint = "35.233.243.58:5000"
+endpoint = "wakeupthe.net:5000"
 
 def main(args):
     name = args[0]
@@ -20,8 +20,8 @@ def main(args):
         time.sleep(5)
     print("ALARM GOING OFF!!")
 
-    calibrate_frame3.main(endpoint, name, 10)
     subprocess.Popen(['curl', '-X', 'POST', "http://{0}/{1}/jump/end".format(endpoint, name)])
+    calibrate_frame3.main(endpoint, name, 10)
 
 
 if __name__ == '__main__':

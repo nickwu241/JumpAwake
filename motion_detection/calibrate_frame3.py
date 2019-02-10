@@ -1,6 +1,7 @@
 from __future__ import division
 import cv2
 import time
+import subprocess
 import sys
 import datetime
 import requests
@@ -121,7 +122,7 @@ def checkAction(background_f, frame, y0, x0, height, width, version=0):
         thresh = cv2.threshold(frame_diff, 0, 255,
             cv2.THRESH_BINARY_INV )[1]
             #| cv2.THRESH_OTSU
-        if debug == True:    
+        if debug == True:
             cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
                 cv2.CHAIN_APPROX_SIMPLE)
             cnts = imutils.grab_contours(cnts)
@@ -167,19 +168,19 @@ def main(endpoint, name, duration):
     #cap = cv2.VideoCapture(source)
     # initialize the video stream and allow the cammera sensor to warmup
     cap = VideoStream(usePiCamera=-1 > 0).start()
-    time.sleep(1)
+    time.sleep(2)
 
     frame = cap.read()
     frame = imutils.resize(frame, width=400)
     current_time = datetime.datetime.now()
     finish = current_time + datetime.timedelta(seconds=1)
-    
+
     if haar==True:
         hasFrame = True
         frame_count = 0
         tt_opencvHaar = 0
         vid_writer = cv2.VideoWriter('output-haar-{}.avi'.format(str(source).split(".")[0]),cv2.VideoWriter_fourcc('M','J','P','G'), 15, (frame.shape[1],frame.shape[0]))
-        
+
     avg2 = np.float32(frame)
     background_frame = None
 
@@ -190,7 +191,7 @@ def main(endpoint, name, duration):
         frame = cap.read()
         frame = imutils.resize(frame, width=400)
         #frame = cv2.flip( frame, 1 )
-        
+
         #background_frame = cv2.GaussianBlur(frame, (5,5), 0)
         background_frame = frame
         cv2.accumulateWeighted(background_frame,avg2,0.01)
@@ -212,7 +213,7 @@ def main(endpoint, name, duration):
             vid_writer.write(frame)
             if frame_count == 1:
                 tt_opencvHaar = 0
-            
+
         else:
             bboxes = detectFaces2(frame, net)
             if debug == True:
@@ -226,7 +227,7 @@ def main(endpoint, name, duration):
         if k == 27:
             break
 
-    
+
     trip_threshold = 0.5
     jump_timeout_time = 1
     jump_debounce_time = .1
@@ -237,6 +238,7 @@ def main(endpoint, name, duration):
     count_pulse = False
 
     start_time = time.time()
+    # subprocess.Popen(['afplay', 'smw_coin.wav'])
 
     while (time.time() - start_time) < duration:
         hasFrame = True
@@ -297,7 +299,8 @@ def main(endpoint, name, duration):
                 if endpoint ==  "local":
                     pass
                 else:
-                    requests.post("http://{0}/{1}/jump".format(endpoint, name))
+                    subprocess.Popen(['curl', '-X', 'POST', "http://{0}/{1}/jump".format(endpoint, name)])
+                    # subprocess.Popen(['afplay', 'smw_jump.wav'])
 
 
         if haar == True:
@@ -316,7 +319,7 @@ def main(endpoint, name, duration):
         if k == 27:
             break
     cv2.destroyAllWindows()
-    
+
     if haar == True:
         vid_writer.release()
 
