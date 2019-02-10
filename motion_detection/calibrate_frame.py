@@ -108,7 +108,6 @@ def checkAction(background_f, frame, y0, x0, height, width, version=0):
     (score,frame_diff) = compare_ssim(background_f_gray, frame_gray, full= True)
     frame_diff = (frame_diff * 255).astype("uint8") #convert float it uint8
     if verbose == True:
-        print("SSIM: {}".format(score))
         if score < .5:
             print("Score under 0.5!")
 
@@ -250,9 +249,8 @@ def main(endpoint, name):
             y0 = y0 - int(height/2)
             frame_cropped_check = frame[max(0, y0-height):y0, x0:x0+width]
             bkg_frame_check = background_frame[max(0, y0-height):y0, x0:x0+width]
-            
+
             diff, bbox_triggered = checkAction(bkg_frame_check, frame_cropped_check, y0, x0, height, width, 0)
-            print(str(round(time.time(),2))+"s " +str(round(diff,3)))
             #print(str(bboxes[0])) #[x, y, w, h]
             if len(bbox_triggered)>1 and bbox_triggered[2] > width/2:
 
@@ -267,7 +265,6 @@ def main(endpoint, name):
                 if found == True: #Falling edge
                     jump_stop_time = time.time()
                     if jump_stop_time > jump_start_time and count_pulse == False:
-                        print("Pulse Time: "+str(round(jump_stop_time-jump_start_time, 2)))
                         pulse_duration = round(jump_stop_time-jump_start_time, 2)
 
                         if pulse_duration < jump_timeout_time and pulse_duration > jump_debounce_time:

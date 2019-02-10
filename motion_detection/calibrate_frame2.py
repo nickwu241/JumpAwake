@@ -38,7 +38,7 @@ def drawBoxes(frame, faceFrames):
             [x0, y0, width, height] = faceFrames
 
             #text = "{:.2f}%".format(confidence * 100)
-            # y = startY - 10 
+            # y = startY - 10
             # if startY - 10 > 10:
             #     pass
             # else:
@@ -91,10 +91,10 @@ def detectFaces2(frame, net, confidence_threshold=0.5):
         # object
         box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
         (startX, startY, endX, endY) = box.astype("int")
-        
+
         #faceFrames[i] = [startX, startY, endX, endY]
         faceFrames[i]  = [startX, startY, endX-startX, endY-startY]
-        #[x0, y0, width, height] 
+        #[x0, y0, width, height]
 
     return faceFrames
 
@@ -124,12 +124,12 @@ def checkAction(background_f, frame, y0, x0, height, width, version=0):
         cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
             cv2.CHAIN_APPROX_SIMPLE)
         cnts = imutils.grab_contours(cnts)
-        
+
         if len(cnts) > 0:
             c_max = max(cnts, key=cv2.contourArea)
             (x, y, w, h) = cv2.boundingRect(c_max)
-            bbox_triggered = [x, y, w, h]       
-            
+            bbox_triggered = [x, y, w, h]
+
             if verbose == True:
                 if w > width/2:
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
@@ -190,7 +190,7 @@ def main(endpoint, name):
         t = time.time()
         background_frame = cv2.GaussianBlur(frame, (5,5), 0)
         cv2.accumulateWeighted(background_frame,avg2,0.01)
-        
+
         if haar == True:
             bboxes = detectFaces(faceCascade, frame)
             frame, _ = drawBoundingBoxes(faceCascade, frame, bboxes)
@@ -216,7 +216,7 @@ def main(endpoint, name):
         if k == 27:
             break
 
-    state = 0 
+    state = 0
     trip_threshold = 0.5
     jump_timeout_time = 1
     jump_debounce_time = .1
@@ -236,7 +236,7 @@ def main(endpoint, name):
         #0 - looking for action
         #1 - jump in action
 
-        
+
 
         t = time.time()
         if haar == True:
@@ -252,19 +252,18 @@ def main(endpoint, name):
             y0 = y0 - int(height/2)
             frame_cropped_check = frame[max(0, y0-height):y0, x0:x0+width]
             bkg_frame_check = background_frame[max(0, y0-height):y0, x0:x0+width]
-            
+
             diff, bbox_triggered = checkAction(bkg_frame_check, frame_cropped_check, y0, x0, height, width, 0)
-            print(str(round(time.time(),2))+"s " +str(round(diff,3)))
             #print(str(bboxes[0])) #[x, y, w, h]
             if len(bbox_triggered)>1 and bbox_triggered[2] > width/2:
-                
+
                 frame_draw = drawBoxes(frame_draw, [x0,max(0, y0-height),bbox_triggered[2],bbox_triggered[3]])
                 cv2.imshow("Face Detection Comparison", frame_draw)
 
             if diff < trip_threshold: #reset state
                 if found == False: #Rising edge
                     jump_start_time = time.time()
-                found = True     
+                found = True
             else:
                 if found == True: #Falling edge
                     jump_stop_time = time.time()
@@ -275,13 +274,13 @@ def main(endpoint, name):
                         if pulse_duration < jump_timeout_time and pulse_duration > jump_debounce_time:
                             count_pulse = True
                 found = False
-            
+
             if count_pulse == True:
                 count_pulse = False
                 n_actions += 1
                 print("Jumping jack "+str(n_actions))
                 requests.post(f"http://{endpoint}/{name}/jump")
-                
+
 
         if haar == True:
             tt_opencvHaar += time.time() - t
@@ -294,7 +293,7 @@ def main(endpoint, name):
             vid_writer.write(outOpencvHaar)
             if frame_count == 1:
                 tt_opencvHaar = 0
-            
+
         k = cv2.waitKey(10)
         if k == 27:
             break
