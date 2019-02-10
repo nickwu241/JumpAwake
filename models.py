@@ -46,6 +46,7 @@ class User():
         self.__jumps_node.set(0)
 
     def set_alarm(self, timestamp):
+        print('[SET ALARM]' + self.id)
         return DB.child('{}/{}'.format(self.id, ALARM_KEY)).set(timestamp)
 
     @property
@@ -84,6 +85,8 @@ class User():
             return datetime.strptime(self.data['alarm'], '%Y-%m-%dT%H:%M:%S.000Z')
 
 def fmt_time_series(ts):
+    if not ts:
+        return [{'x':[], 'y': [], 'type': 'scatter'}]
     x = [point['timestamp'] for point in ts]
     y = [point['current_jumps'] for point in ts]
     two_mins_before = (parse(x[-1]) - timedelta(seconds=90)).isoformat()

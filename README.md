@@ -11,6 +11,7 @@ terraform init
 terraform apply
 
 # Transfer production files to Google Cloud Compute instance
+./frontend/create_build.sh
 ./sync.sh
 
 # Clean up resources after demoing
