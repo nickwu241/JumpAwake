@@ -3,7 +3,7 @@ import cv2
 import time
 import sys
 import datetime
-import grequests
+import requests
 
 import numpy as np
 import imutils
@@ -193,7 +193,10 @@ def main(endpoint, name):
                 count_pulse = False
                 n_actions += 1
                 print("Jumping jack "+str(n_actions))
-                grequests.post("http://{0}/{1}/jump".format(endpoint, name))
+                try:
+                    requests.post("http://{0}/{1}/jump".format(endpoint, name), timeout=0.0000001)
+                except requests.exceptions.ReadTimeout:
+                    pass
 
 
 
