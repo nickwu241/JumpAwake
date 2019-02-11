@@ -1,5 +1,11 @@
-# JumpAwake
-[XdHacks 2019] Do jumping jacks to silence your alarm!
+# Jump Awake
+
+`Jump Awake` is an IoT solution that gets you physically active in the morning, winning the `Best Use of Google Cloud Platform` and `Best IoT Hack` prizes at `XdHacks 2019`.
+
+Created by
+- [Gordon Shieh](https://www.linkedin.com/in/gordon-shieh-73658796/)
+- [Marshall Lu](https://www.linkedin.com/in/marshalllu/)
+- [Nicholas Wu](https://nickwu241.github.io)
 
 # Problem
 Too many people are stuck in their beds, some also choose to repeatedly snooze their alarms, and many people want exercise but need that initial encouragement!
@@ -14,22 +20,33 @@ To add additional motivation, we've gamified this experience to provide social m
 - A dashboard to show statistics for your activities
 - A Google Home companion application to schedule your fitness alarm
 
+## How does it work?
+1. User has the IoT device (with webcam and screen attached) in their bedroom.
+2. They set an alarm by saying `Okay Google, tell Master Exercise to challenge me at 8:00am`
+3. At 8:00am, the alarm activates and the user will have to do jumping jacks to disable the alarm.
+
 # Technology Used
-Our IoT devices include a Qualcomm Dragonboard and Raspberry Pi 3 running machine vision algorithms to detect the user's motions such as jumping jacks.
-We are running 2 algorithms for Computer Vision:
-- OpenCV Haar Casscades on low-compute devices such as IoT devices
-- Caffe Based Face Detector which uses a Deep Neural Net algorithm that detects more accurately for devices with more compute
+Here's a rough picture of our architecure:
 
-Our web service is hosted on `Google Cloud Platform` using `Google Compute Engine` making use of web-sockets for real-time communication.
+<img src="other_assets/technical_architecture.jpg" alt="technical architecture" width="600px">
 
-We also leveraged
-- `Firebase Real-time Database` for data store
+Our IoT devices include a `Qualcomm DragonBoard 410c` and `Raspberry Pi 3` with webcams and monitors attached to them. They run machine vision algorithms to detect the user's motions such as jumping jacks.
+We implemented our activity detection using 2 different algorithms:
+- OpenCV Haar Casscades on low-compute devices such as our IoT devices
+- Caffe Based Face Detector which uses a Deep Neural Net algorithm that detects more accurately for devices with more compute such as a laptop
+
+Our web service uses web-sockets for real-time communication for devices coded using `Vue` for frontend and `Flask` for the backend.
+
+Finally, we leveraged Google's services by using
+- `Google Compute Engine` to host our web service
+- `Firebase Real-time Database` to store alarm times, statistics and time series data for physical activity
 - `Google Cloud Functions` to run workloads such a scheduling alarms
 - `Google Dialogflow Agent` to facilitate interactions with `Google Assistant`
-- `Google Assistant` for voice control activation and settings
+- `Google Assistant` to control the device via voice
+- `Google Home Mini` as the hardware running `Google Assistant`
 
-## Development
-### Deploy To Google Cloud Platform
+# Development
+## Deploying the web service to Google Cloud Platform
 ```sh
 # Initialize terraform once
 terraform init
@@ -37,10 +54,15 @@ terraform init
 # Create resources for the demo
 terraform apply
 
-# Transfer production files to Google Cloud Compute instance
+# Package the frontend to be statically served via the backend
 ./frontend/create_build.sh
+
+# Transfer production files to the Google Compute virtual machine
 ./sync.sh
 
-# Clean up resources after demoing
+# SSH into the Google VM and start the server
+./remote_start_server.sh
+
+# Clean up Google resources after the demo to avoid paying $
 terraform destroy
 ```
