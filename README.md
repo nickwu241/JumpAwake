@@ -25,6 +25,9 @@ To add additional motivation, we've gamified this experience to provide social m
 2. They set an alarm by saying `Okay Google, tell Master Exercise to challenge me at 8:00am`
 3. At 8:00am, the alarm activates and the user will have to do jumping jacks to disable the alarm.
 
+Screenshots of what's displayed on the IoT devices' screen:
+<img src="other_assets/Screens.png" alt="technical architecture">
+
 # Technology Used
 Here's a rough picture of our architecure:
 

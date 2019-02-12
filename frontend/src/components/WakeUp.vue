@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1 v-if="hasFinished" class="display-1 mb-5 text-success">
-      <strong>Congratualtions!</strong>
+      <strong>Congratulations!</strong>
     </h1>
     <div class="d-flex justify-content-around">
       <div :class="{'h-half': hasOpponent}" v-if="jumpCount !== null">
