@@ -11,11 +11,11 @@ Created by
 Too many people are stuck in their beds, some also choose to repeatedly snooze their alarms, and many people want exercise but need that initial encouragement!
 
 # Solution
-Starting the day off early with improves your physical health and heightens your alertness.
+Starting the day off early improves your physical health and heightens your alertness.
 
 Our IoT device is an alarm that requires you to do physical exercise routines such as jumping jacks, squats, burpees, sit ups in order to shut off the alarm.
 
-To add additional motivation, we've gamified this experience to provide social motivation for users that's striving to wake up early by implementing:
+To add additional motivation, we've gamified this experience to provide social motivation for users who're striving to wake up early by implementing:
 - A live Competition mode for real-time activity tracking against an opponent
 - A dashboard to show statistics for your activities
 - A Google Home companion application to schedule your fitness alarm
@@ -26,10 +26,10 @@ To add additional motivation, we've gamified this experience to provide social m
 3. At 8:00am, the alarm activates and the user will have to do jumping jacks to disable the alarm.
 
 Screenshots of what's displayed on the IoT devices' screen:
-<img src="other_assets/Screens.png" alt="technical architecture">
+<img src="other_assets/Screens.png" alt="screens">
 
 # Technology Used
-Here's a rough picture of our architecure:
+Here's a rough picture of our architecture:
 
 <img src="other_assets/technical_architecture.jpg" alt="technical architecture" width="600px">
 
