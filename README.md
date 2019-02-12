@@ -35,7 +35,7 @@ We implemented our activity detection using 2 different algorithms:
 - OpenCV Haar Casscades on low-compute devices such as our IoT devices
 - Caffe Based Face Detector which uses a Deep Neural Net algorithm that detects more accurately for devices with more compute such as a laptop
 
-Our web service uses web-sockets for real-time communication for devices coded using `Vue` for frontend and `Flask` for the backend.
+Our web service uses web-sockets for real-time communication, leveraged `Vue` for frontend and `Flask` for the backend.
 
 Finally, we leveraged Google's services by using
 - `Google Compute Engine` to host our web service
@@ -46,6 +46,34 @@ Finally, we leveraged Google's services by using
 - `Google Home Mini` as the hardware running `Google Assistant`
 
 # Development
+## Running the services locally
+Running the server locally requires the Firebase admin credentials `firebase-sa-secret.json` to interact with the database.
+```sh
+# Install the dependencies if you haven't
+pipenv install
+
+# Run the app on localhost:5000 with hot reload and debug
+pipenv run ./app.py
+```
+
+```sh
+# Developing for the frontend
+cd frontend
+
+# Install the dependencies if you haven't
+npm install
+
+# Run the frontend on localhost:8080 with hot reload and proxying to localhost:5000
+npm run serve
+```
+
+```sh
+# Requires Firebase CLI, you can install via: npm install -g firebase CLI
+# Requires login: firebase login
+# Then you can serve the Google cloud function locally, see CLI output for the URL
+firebase serve
+```
+
 ## Deploying the web service to Google Cloud Platform
 ```sh
 # Initialize terraform once
